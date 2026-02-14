@@ -2,11 +2,11 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>模仿羊了个羊</title>
+<title>叠层三消·更多水果种类</title>
 <style>
     body {
         font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-        background: #f5f7fa;  /* 柔和白色背景 */
+        background: #f5f7fa;
         margin: 0;
         min-height: 100vh;
         display: flex;
@@ -23,7 +23,7 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         margin: 10px 0;
         border: 1px solid #e0e4e9;
-        transition: width 0.2s, height 0.2s; /* 平滑尺寸变化 */
+        transition: width 0.2s, height 0.2s;
     }
 
     .icon {
@@ -132,7 +132,6 @@
         box-shadow: 0 1px 0 #1e6b44;
     }
 
-    /* 浮动提示 Toast */
     #toast {
         position: fixed;
         top: 30px;
@@ -177,23 +176,28 @@
 
 <div id="board"></div>
 
-<h3 style="color: #2b4450;">📦 存储槽 <span id="slotLimit" style="color: #b85e3a;">(最多6个)</span></h3>
+<h3 style="color: #2b4450;">📦 存储槽 <span id="slotLimit" style="color: #b85e3a;">(最多7个)</span></h3>
 <div id="slot"></div>
 
 <button id="next">➡️ 再来一局</button>
 
-<!-- 浮动提示 Toast -->
 <div id="toast">
     <span>⚠️</span>
     <span id="toastMessage">亲，先把压着我的水果挪走呀</span>
 </div>
 
 <script>
-    const BASE_TYPES = ["🍎","🍊","🍇","🍓","🍌","🍒","🍉"];
+    // 增加了更多水果种类，共15种
+    const BASE_TYPES = [
+        "🍎", "🍊", "🍇", "🍓", "🍌",  // 原有5种
+        "🍒", "🍉",                     // 原有7种中的后两个
+        "🍏", "🍐", "🍑", "🍍", "🥝", "🍋", "🍈", "🥭"  // 新增8种，总计15种
+    ];
 
+    // 当前关卡配置
     let currentLayerSizes = [4,3,2,1];
-    let currentMaxSlot = 6;
-    let currentTypes = BASE_TYPES.slice(0,5);
+    let currentMaxSlot = 7;
+    let currentTypes = BASE_TYPES.slice(0,5); // 第一关使用前5种
 
     let icons = [];
     let slot = [];
@@ -204,7 +208,6 @@
     const slotLimitSpan = document.getElementById('slotLimit');
     const nextBtn = document.getElementById('next');
 
-    // 浮动提示相关
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     let toastTimer = null;
@@ -236,6 +239,14 @@
         removedCount = 0;
         nextBtn.style.display = "none";
         slotLimitSpan.innerText = `(最多${currentMaxSlot}个)`;
+
+        // 检查是否递减（非递减会警告）
+        for (let i = 0; i < currentLayerSizes.length - 1; i++) {
+            if (currentLayerSizes[i] !== currentLayerSizes[i+1] + 1) {
+                console.warn('警告：层尺寸不是严格递减，遮挡关系可能异常！');
+                break;
+            }
+        }
 
         let id = 0;
         for (let layer = 0; layer < currentLayerSizes.length; layer++) {
@@ -327,11 +338,10 @@
         boardEl.innerHTML = "";
         slotEl.innerHTML = "";
 
-        const cellWidth = 80;      // 每个格子占宽
-        const iconSize = 70;       // 图标实际宽高
-        const padding = 20;        // 内边距
+        const cellWidth = 80;
+        const iconSize = 70;
+        const padding = 20;
 
-        // 计算每个图标相对于原点 (0,0) 的左上角坐标
         let positions = [];
         icons.forEach(icon => {
             if (icon.removed) return;
@@ -346,23 +356,19 @@
         });
 
         if (positions.length === 0) {
-            // 没有图标时，设置 board 为最小尺寸
             boardEl.style.width = '200px';
             boardEl.style.height = '200px';
             return;
         }
 
-        // 计算包围盒
         let minLeft = Math.min(...positions.map(p => p.left));
         let maxRight = Math.max(...positions.map(p => p.left + iconSize));
         let minTop = Math.min(...positions.map(p => p.top));
         let maxBottom = Math.max(...positions.map(p => p.top + iconSize));
 
-        // 设置 board 尺寸（包含 padding）
         boardEl.style.width = (maxRight - minLeft + 2 * padding) + 'px';
         boardEl.style.height = (maxBottom - minTop + 2 * padding) + 'px';
 
-        // 绘制图标，坐标调整为相对于 board 左上角
         positions.forEach(({ icon, left, top }) => {
             const div = document.createElement("div");
             div.className = "icon";
@@ -388,7 +394,6 @@
             boardEl.appendChild(div);
         });
 
-        // 渲染存储槽
         slot.forEach(i => {
             const d = document.createElement("div");
             d.className = "icon";
@@ -401,14 +406,15 @@
     document.getElementById('btnLevel1').addEventListener('click', () => {
         currentLayerSizes = [4,3,2,1];
         currentMaxSlot = 6;
-        currentTypes = BASE_TYPES.slice(0,5);
+        currentTypes = BASE_TYPES.slice(0,5); // 第一关仍用5种
         createLevel();
     });
 
     document.getElementById('btnLevel2').addEventListener('click', () => {
+        // 第二关：10层递减，槽6，使用全部15种水果（地狱难度）
         currentLayerSizes = [12,11,10,9,8,7,6,5,4,3,2,1];
-        currentMaxSlot = 5;
-        currentTypes = BASE_TYPES.slice(0,7);
+        currentMaxSlot = 6;
+        currentTypes = BASE_TYPES; // 使用全部15种
         createLevel();
     });
 
