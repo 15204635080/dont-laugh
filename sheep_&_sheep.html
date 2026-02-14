@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>模仿羊了个羊</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        background: #f5f7fa;  /* 柔和白色背景 */
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+
+    #board {
+        position: relative;
+        background: #ffffff;
+        border-radius: 30px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        margin: 10px 0;
+        border: 1px solid #e0e4e9;
+        transition: width 0.2s, height 0.2s; /* 平滑尺寸变化 */
+    }
+
+    .icon {
+        width: 70px;
+        height: 70px;
+        line-height: 70px;
+        font-size: 32px;
+        border-radius: 16px;
+        position: absolute;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        background: linear-gradient(145deg, #ffffff, #ecf0f3);
+        border: 2px solid #d0d9e2;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        user-select: none;
+    }
+
+    .icon:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .covered {
+        background: linear-gradient(145deg, #d9e0e8, #c0c8d2);
+        border: 2px solid #b0b8c2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: default;
+        color: transparent;
+    }
+
+    .partial {
+        background: linear-gradient(145deg, #eef3f8, #dbe2ec);
+        border: 2px solid #c2ccd8;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: default;
+        color: #6b7b8c;
+    }
+
+    #slot {
+        width: 1000px;
+        margin: 20px 0;
+        background: #ffffff;
+        border-radius: 30px;
+        padding: 15px;
+        display: flex;
+        gap: 10px;
+        min-height: 80px;
+        flex-wrap: wrap;
+        box-sizing: border-box;
+        border: 1px solid #d0d9e2;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    #slot .icon {
+        position: static;
+        margin: 2px;
+    }
+
+    .level-buttons {
+        display: flex;
+        gap: 20px;
+        margin: 15px 0;
+    }
+
+    .level-btn {
+        padding: 12px 30px;
+        font-size: 1.3rem;
+        border: none;
+        border-radius: 60px;
+        background: #3a6b8f;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 5px 0 #1e3f57, 0 8px 12px rgba(0, 0, 0, 0.1);
+        transition: 0.1s;
+        font-weight: bold;
+        letter-spacing: 1px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .level-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 #1e3f57, 0 5px 8px rgba(0, 0, 0, 0.1);
+    }
+    .level-btn.second {
+        background: #b85e3a;
+        box-shadow: 0 5px 0 #7a3d23;
+    }
+
+    #next {
+        margin-top: 20px;
+        padding: 10px 30px;
+        font-size: 1.2rem;
+        background: #3f9e6d;
+        color: white;
+        border: none;
+        border-radius: 40px;
+        cursor: pointer;
+        box-shadow: 0 5px 0 #1e6b44;
+        transition: 0.1s;
+        display: none;
+        font-weight: bold;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    #next:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 #1e6b44;
+    }
+
+    /* 浮动提示 Toast */
+    #toast {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333333;
+        color: #ffd966;
+        padding: 16px 32px;
+        border-radius: 50px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 1px solid #ffd966;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+    }
+
+    #toast.show {
+        display: flex;
+        animation: fadeInOut 3s ease forwards;
+    }
+
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+</style>
+</head>
+<body>
+
+<h2 style="color: #2b4450;">模仿🐑 羊了个羊</h2>
+
+<div class="level-buttons">
+    <button class="level-btn" id="btnLevel1">我是菜鸡</button>
+    <button class="level-btn second" id="btnLevel2">我是高手</button>
+</div>
+
+<div id="board"></div>
+
+<h3 style="color: #2b4450;">📦 存储槽 <span id="slotLimit" style="color: #b85e3a;">(最多6个)</span></h3>
+<div id="slot"></div>
+
+<button id="next">➡️ 再来一局</button>
+
+<!-- 浮动提示 Toast -->
+<div id="toast">
+    <span>⚠️</span>
+    <span id="toastMessage">亲，先把压着我的水果挪走呀</span>
+</div>
+
+<script>
+    const BASE_TYPES = ["🍎","🍊","🍇","🍓","🍌","🍒","🍉"];
+
+    let currentLayerSizes = [4,3,2,1];
+    let currentMaxSlot = 6;
+    let currentTypes = BASE_TYPES.slice(0,5);
+
+    let icons = [];
+    let slot = [];
+    let removedCount = 0;
+
+    const boardEl = document.getElementById('board');
+    const slotEl = document.getElementById('slot');
+    const slotLimitSpan = document.getElementById('slotLimit');
+    const nextBtn = document.getElementById('next');
+
+    // 浮动提示相关
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    let toastTimer = null;
+
+    function showToast(message, duration = 3000) {
+        if (toastTimer) {
+            clearTimeout(toastTimer);
+            toastTimer = null;
+        }
+        toastMessage.innerText = message;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+            toastTimer = null;
+        }, duration);
+    }
+
+    function hideToast() {
+        if (toastTimer) {
+            clearTimeout(toastTimer);
+            toastTimer = null;
+        }
+        toast.classList.remove('show');
+    }
+
+    function createLevel() {
+        icons = [];
+        slot = [];
+        removedCount = 0;
+        nextBtn.style.display = "none";
+        slotLimitSpan.innerText = `(最多${currentMaxSlot}个)`;
+
+        let id = 0;
+        for (let layer = 0; layer < currentLayerSizes.length; layer++) {
+            const size = currentLayerSizes[layer];
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    icons.push({
+                        id: id++,
+                        type: currentTypes[Math.floor(Math.random() * currentTypes.length)],
+                        row: r,
+                        col: c,
+                        layer: layer,
+                        coveredBy: [],
+                        removed: false
+                    });
+                }
+            }
+        }
+
+        buildCoverRelations();
+        render();
+    }
+
+    function buildCoverRelations() {
+        for (let L = 0; L < currentLayerSizes.length - 1; L++) {
+            const upperLayer = L;
+            const lowerLayer = L + 1;
+            const upperIcons = icons.filter(icon => icon.layer === upperLayer);
+            const lowerIcons = icons.filter(icon => icon.layer === lowerLayer);
+
+            lowerIcons.forEach(lower => {
+                upperIcons.forEach(upper => {
+                    if ((upper.row === lower.row || upper.row === lower.row + 1) &&
+                        (upper.col === lower.col || upper.col === lower.col + 1)) {
+                        lower.coveredBy.push(upper.id);
+                    }
+                });
+            });
+        }
+    }
+
+    function clickIcon(icon) {
+        if (icon.removed) return;
+        if (icon.coveredBy.length > 0) {
+            showToast("亲，先把压着我的水果挪走呀", 3000);
+            return;
+        }
+
+        hideToast();
+
+        icon.removed = true;
+        removedCount++;
+
+        icons.forEach(i => {
+            const idx = i.coveredBy.indexOf(icon.id);
+            if (idx !== -1) i.coveredBy.splice(idx, 1);
+        });
+
+        slot.push(icon);
+        checkMatch();
+
+        if (slot.length > currentMaxSlot) {
+            showToast("😵 槽满了！游戏失败，重新开始当前关卡", 3000);
+            setTimeout(() => createLevel(), 500);
+            return;
+        }
+
+        checkWin();
+        render();
+    }
+
+    function checkMatch() {
+        const countMap = {};
+        slot.forEach(i => countMap[i.type] = (countMap[i.type] || 0) + 1);
+        for (let type in countMap) {
+            if (countMap[type] >= 3) {
+                slot = slot.filter(i => i.type !== type);
+            }
+        }
+    }
+
+    function checkWin() {
+        if (removedCount === icons.length) {
+            nextBtn.style.display = "inline";
+        }
+    }
+
+    function render() {
+        boardEl.innerHTML = "";
+        slotEl.innerHTML = "";
+
+        const cellWidth = 80;      // 每个格子占宽
+        const iconSize = 70;       // 图标实际宽高
+        const padding = 20;        // 内边距
+
+        // 计算每个图标相对于原点 (0,0) 的左上角坐标
+        let positions = [];
+        icons.forEach(icon => {
+            if (icon.removed) return;
+
+            let centerX = (icon.col + 0.5 + icon.layer * 0.5) * cellWidth;
+            let centerY = (icon.row + 0.5 + icon.layer * 0.5) * cellWidth;
+
+            let left = centerX - iconSize / 2;
+            let top = centerY - iconSize / 2;
+
+            positions.push({ icon, left, top });
+        });
+
+        if (positions.length === 0) {
+            // 没有图标时，设置 board 为最小尺寸
+            boardEl.style.width = '200px';
+            boardEl.style.height = '200px';
+            return;
+        }
+
+        // 计算包围盒
+        let minLeft = Math.min(...positions.map(p => p.left));
+        let maxRight = Math.max(...positions.map(p => p.left + iconSize));
+        let minTop = Math.min(...positions.map(p => p.top));
+        let maxBottom = Math.max(...positions.map(p => p.top + iconSize));
+
+        // 设置 board 尺寸（包含 padding）
+        boardEl.style.width = (maxRight - minLeft + 2 * padding) + 'px';
+        boardEl.style.height = (maxBottom - minTop + 2 * padding) + 'px';
+
+        // 绘制图标，坐标调整为相对于 board 左上角
+        positions.forEach(({ icon, left, top }) => {
+            const div = document.createElement("div");
+            div.className = "icon";
+
+            const finalLeft = left - minLeft + padding;
+            const finalTop = top - minTop + padding;
+
+            div.style.left = finalLeft + "px";
+            div.style.top = finalTop + "px";
+            div.style.zIndex = 100 - icon.layer;
+
+            if (icon.coveredBy.length === 0) {
+                div.innerText = icon.type;
+            } else if (icon.coveredBy.length <= 2) {
+                div.classList.add("partial");
+                div.innerText = icon.type;
+            } else {
+                div.classList.add("covered");
+                div.innerText = "";
+            }
+
+            div.onclick = () => clickIcon(icon);
+            boardEl.appendChild(div);
+        });
+
+        // 渲染存储槽
+        slot.forEach(i => {
+            const d = document.createElement("div");
+            d.className = "icon";
+            d.style.position = "static";
+            d.innerText = i.type;
+            slotEl.appendChild(d);
+        });
+    }
+
+    document.getElementById('btnLevel1').addEventListener('click', () => {
+        currentLayerSizes = [4,3,2,1];
+        currentMaxSlot = 6;
+        currentTypes = BASE_TYPES.slice(0,5);
+        createLevel();
+    });
+
+    document.getElementById('btnLevel2').addEventListener('click', () => {
+        currentLayerSizes = [12,11,10,9,8,7,6,5,4,3,2,1];
+        currentMaxSlot = 5;
+        currentTypes = BASE_TYPES.slice(0,7);
+        createLevel();
+    });
+
+    nextBtn.addEventListener('click', () => {
+        createLevel();
+    });
+
+    createLevel();
+</script>
+
+</body>
+</html>

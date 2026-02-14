@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>别笑！第二关你绝对过不了</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* 防止选中文字干扰点击 */
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #1e2b3a 0%, #0f172a 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-wrapper {
+            background: #2d3e4f;
+            padding: 2rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6), inset 2px 2px 5px rgba(255,255,255,0.1);
+            border: 1px solid #4f6b7a;
+        }
+        .panel {
+            background: #1f2e3a;
+            border-radius: 2rem;
+            padding: 2rem;
+            width: 700px;
+            max-width: 90vw;
+            box-shadow: inset 0 0 10px #0a0f14;
+            color: #e8edf2;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.2rem;
+            margin: 0 0 0.5rem;
+            text-shadow: 3px 3px 0 #0b1219;
+            letter-spacing: 2px;
+            color: #ffd966;
+        }
+        .sub {
+            color: #b0c4de;
+            margin-bottom: 2rem;
+            font-style: italic;
+            border-bottom: 1px dashed #4e6b7c;
+            padding-bottom: 0.5rem;
+        }
+        /* 关卡容器 */
+        .level {
+            transition: opacity 0.2s;
+        }
+        .hidden {
+            display: none;
+        }
+        /* 第一关样式 */
+        #level1 .big-button {
+            background: #27ae60;
+            border: none;
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            padding: 2rem 4rem;
+            border-radius: 6rem;
+            cursor: pointer;
+            box-shadow: 0 15px 0 #1e8449, 0 20px 20px rgba(0,0,0,0.3);
+            transition: 0.07s ease;
+            margin: 1rem 0;
+            letter-spacing: 4px;
+        }
+        #level1 .big-button:active {
+            transform: translateY(10px);
+            box-shadow: 0 5px 0 #1e8449, 0 15px 20px rgba(0,0,0,0.3);
+        }
+        /* 第二关样式 */
+        .game-area {
+            position: relative;
+            width: 500px;
+            height: 400px;
+            margin: 1.5rem auto;
+            background: #263945;
+            border-radius: 30px;
+            border: 3px solid #3f5563;
+            box-shadow: inset 0 0 20px #101c24;
+            overflow: hidden; /* 防止按钮溢出边框，但不影响移动范围（内部限制） */
+        }
+        #runBtn {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 70px;
+            height: 70px;
+            background: #e74c3c;
+            border: 3px solid #fff5d6;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #962d22, 0 10px 15px black;
+            transition: left 0.05s, top 0.05s; /* 移动时稍微平滑，但依然很快 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            text-align: center;
+            z-index: 10;
+        }
+        .stats {
+            background: #14222b;
+            padding: 1rem;
+            border-radius: 50px;
+            display: inline-block;
+            margin: 0.5rem 0;
+            font-size: 1.3rem;
+            border: 1px solid #4f7a92;
+        }
+        .stats span {
+            color: #f1c40f;
+            font-weight: bold;
+            font-size: 1.8rem;
+            margin: 0 0.5rem;
+        }
+        .sarcasm {
+            min-height: 2.5rem;
+            font-size: 1.2rem;
+            color: #f39c12;
+            margin: 0.5rem 0;
+            font-weight: 500;
+            text-shadow: 1px 1px 0 #00000055;
+        }
+        button.ghost-btn {
+            background: transparent;
+            border: 2px solid #5f7f94;
+            color: #d4e6f5;
+            padding: 0.6rem 2rem;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            margin: 1rem 0.5rem;
+            transition: 0.2s;
+        }
+        button.ghost-btn:hover {
+            background: #2b4b5c;
+            border-color: #ffb347;
+            color: white;
+        }
+        #win h2 {
+            color: #f4d03f;
+            font-size: 3rem;
+            margin: 1rem 0;
+        }
+        .reset-icon {
+            font-size: 2rem;
+            background: #2c3e50;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1rem auto;
+            cursor: pointer;
+            border: 2px solid #95a5a6;
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper">
+    <div class="panel">
+        <h1>🤣 别笑！第二关挑战</h1>
+        <div class="sub">第一关闭眼过，第二关...</div>
+
+        <!-- 第一关 -->
+        <div id="level1" class="level">
+            <button class="big-button" id="toLevel2">👉 第一关 👈</button>
+            <div style="font-size: 1.4rem; margin-top: 1rem;">点击按钮进入第二关</div>
+        </div>
+
+        <!-- 第二关 -->
+        <div id="level2" class="level hidden">
+            <div style="font-size: 1.6rem; margin-bottom: 0.2rem;">😈 第二关：捉弄你的按钮</div>
+            <div class="game-area" id="gameContainer">
+                <button id="runBtn">点我<br>过关</button>
+            </div>
+            <div class="stats">
+                🏃 逃跑次数：<span id="escapeCount">0</span>
+            </div>
+            <div class="sarcasm" id="sarcasmMsg">鼠标移上去试试？</div>
+            <div>
+                <button class="ghost-btn" id="backToLevel1">🔙 返回第一关</button>
+            </div>
+        </div>
+
+        <!-- 胜利界面（极难触发） -->
+        <div id="win" class="level hidden">
+            <h2>🎉 不可思议！！ 🎉</h2>
+            <div style="font-size: 2rem; margin: 1rem;">你竟然过了第二关？</div>
+            <div style="font-size: 1.3rem; margin-bottom: 2rem;">一定是bug，快重置再来一次</div>
+            <div class="reset-icon" id="winReset">🔄</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 获取界面元素
+        const level1 = document.getElementById('level1');
+        const level2 = document.getElementById('level2');
+        const win = document.getElementById('win');
+        const toLevel2Btn = document.getElementById('toLevel2');
+        const backBtn = document.getElementById('backToLevel1');
+        const winReset = document.getElementById('winReset');
+
+        // 第二关组件
+        const runBtn = document.getElementById('runBtn');
+        const gameContainer = document.getElementById('gameContainer');
+        const escapeSpan = document.getElementById('escapeCount');
+        const sarcasmDiv = document.getElementById('sarcasmMsg');
+
+        // 状态变量
+        let escapeCount = 0;
+        // 嘲讽语库
+        const taunts = [
+            "😏 就差一点点～",
+            "🤪 嘿嘿，抓不到！",
+            "😂 再来十次也点不到",
+            "😜 放弃吧少年",
+            "🤌 略略略～",
+            "😭 我闪我闪",
+            "👻 你永远得不到我",
+            "🍵 别费劲了"
+        ];
+
+        // 更新嘲讽文字
+        function updateSarcasm() {
+            if (!sarcasmDiv) return;
+            if (escapeCount === 0) {
+                sarcasmDiv.innerText = '鼠标移上去试试？';
+            } else if (escapeCount < 5) {
+                sarcasmDiv.innerText = taunts[escapeCount % taunts.length];
+            } else {
+                sarcasmDiv.innerText = taunts[(escapeCount + 3) % taunts.length] + ' ( ' + escapeCount + ' 次了)';
+            }
+        }
+
+        // 移动逃跑按钮到随机位置（确保在容器内）
+        function moveButton() {
+            if (!runBtn || !gameContainer) return;
+
+            const containerRect = gameContainer.getBoundingClientRect();
+            const btnRect = runBtn.getBoundingClientRect();
+
+            // 按钮的宽度、高度 (可能因为缩放变化，直接用 offset 更准)
+            const btnWidth = runBtn.offsetWidth;
+            const btnHeight = runBtn.offsetHeight;
+
+            // 容器宽高
+            const containerWidth = gameContainer.clientWidth;
+            const containerHeight = gameContainer.clientHeight;
+
+            // 最大可移动 left/top
+            const maxLeft = Math.max(0, containerWidth - btnWidth);
+            const maxTop = Math.max(0, containerHeight - btnHeight);
+
+            // 生成随机位置
+            let newLeft = Math.floor(Math.random() * (maxLeft + 1));
+            let newTop = Math.floor(Math.random() * (maxTop + 1));
+
+            // 防止偶然移出边界
+            newLeft = Math.min(maxLeft, Math.max(0, newLeft));
+            newTop = Math.min(maxTop, Math.max(0, newTop));
+
+            runBtn.style.left = newLeft + 'px';
+            runBtn.style.top = newTop + 'px';
+
+            // 增加逃跑次数
+            escapeCount++;
+            if (escapeSpan) escapeSpan.innerText = escapeCount;
+            updateSarcasm();
+        }
+
+        // 重置第二关（按钮位置、计数清零）
+        function resetLevel2() {
+            escapeCount = 0;
+            if (escapeSpan) escapeSpan.innerText = '0';
+            if (runBtn) {
+                runBtn.style.left = '0px';
+                runBtn.style.top = '0px';
+            }
+            updateSarcasm();
+        }
+
+        // 切换显示辅助函数
+        function showLevel(levelToShow) {
+            level1.classList.add('hidden');
+            level2.classList.add('hidden');
+            win.classList.add('hidden');
+            levelToShow.classList.remove('hidden');
+        }
+
+        // 进入第二关
+        toLevel2Btn.addEventListener('click', () => {
+            resetLevel2();          // 重置计数和位置
+            showLevel(level2);
+        });
+
+        // 从第二关返回第一关
+        backBtn.addEventListener('click', () => {
+            showLevel(level1);
+            // 顺便重置第二关（下次进入时干净）
+            resetLevel2();
+        });
+
+        // 胜利界面的重置按钮（返回第一关）
+        winReset.addEventListener('click', () => {
+            showLevel(level1);
+            resetLevel2();
+        });
+
+        // --- 核心：让按钮逃跑 ---
+        // 鼠标进入按钮立刻移动
+        runBtn.addEventListener('mouseenter', moveButton);
+        // 鼠标按下也移动（防止快速点击或触屏按下）
+        runBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();   // 防止按下时出现选中或拖拽
+            moveButton();
+        });
+        // 针对触摸屏（移动端）
+        runBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();   // 阻止滚动或长按菜单
+            moveButton();
+        });
+
+        // 奇迹时刻：如果用户真的点中了按钮（概率极低）
+        runBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // 进入胜利界面（需要阻止事件冒泡以免干扰）
+            showLevel(win);
+            // 把第二关重置，以便从胜利界面返回后干净
+            resetLevel2();
+        });
+
+        // 可选：避免点击游戏容器误触
+        gameContainer.addEventListener('click', (e) => {
+            // 什么也不做，只是防止冒泡影响？不需要
+        });
+
+        // 为了防止按钮被用 Tab 键聚焦后按回车触发，我们也阻止focus默认移动？
+        // 为了友好，可以监听 focus 事件也逃跑 (让想用键盘的人死心)
+        runBtn.addEventListener('focus', (e) => {
+            // 当按钮通过Tab获得焦点时，也移走，让键盘流无法使用
+            moveButton();
+            // 同时立即失去焦点（可选），但移动后焦点可能会落到body，不管它
+            runBtn.blur();  // 让焦点立刻消失，避免误触
+        });
+
+        // 初始化显示第一关
+        showLevel(level1);
+        // 确保按钮初始位置正确（内联样式已设为 left:0;top:0）
+        // 但为防止样式覆盖，再次确认
+        runBtn.style.left = '0px';
+        runBtn.style.top = '0px';
+        escapeCount = 0;
+        if (escapeSpan) escapeSpan.innerText = '0';
+        updateSarcasm();
+    })();
+</script>
+</body>
+</html>
